@@ -14,7 +14,7 @@ router.get("/", function(req, res, next) {
     console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
     // res.send(body);
     // console.log(typeof body);
-    res.render("index", { response: body, title: "Metorite Explorer" });
+    res.render("index", { response: body, title: "Metorite  Explorer" });
   });
 });
 
