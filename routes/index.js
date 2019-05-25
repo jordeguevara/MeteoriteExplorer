@@ -5,7 +5,7 @@ var request = require("request");
 
 /* GET home page. */
 router.get("/", function(req, res, next) {
-  request("https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=100", function(
+  request("https://data.nasa.gov/resource/gh4g-9sfh.json", function(
     error,
     response,
     body
