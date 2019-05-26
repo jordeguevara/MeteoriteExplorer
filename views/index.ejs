@@ -15,21 +15,20 @@
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
   </head>
   <body>
+    <div class="landing">
+      <nav>
+        <h2>Meteroite Explorer</h2>
+
+        <div>
+          <input id="data" placeholder="Search by Keyword" /><button
+            id="search"
+          >
+            Search
+          </button>
+        </div>
+      </nav>
+    </div>
     <div class="ui fluid container">
-      <div class="landing">
-        <nav>
-          <h2>Meteroite Explorer</h2>
-
-          <div>
-            <input id="data" placeholder="Search by Keyword" /><button
-              id="search"
-            >
-              Search
-            </button>
-          </div>
-        </nav>
-      </div>
-
       <table class="ui celled padded table">
         <thead>
           <tr>
@@ -45,8 +44,9 @@
           </tr>
         </thead>
         <tbody id="tbody">
-          <% let responseJSON = JSON.parse(response) %> <% for(let i = 0 ;i <
-          50;i++) { %> <% let val = responseJSON[i] %>
+          <% let range = 50 %> <% let i; %> <% let responseJSON =
+          JSON.parse(response) %> <% for(i = 0 ;i < responseJSON.length;i++) {
+          %> <% let val = responseJSON[i] %>
           <tr>
             <td>
               <%= val.name %>
@@ -82,11 +82,11 @@
           <tr>
             <th colspan="9">
               <div class="ui right floated pagination menu">
-                <a class="icon item">
+                <!-- <a class="icon item">
                   <i class="left chevron icon"></i>
                 </a>
                 <p>
-                  <% let j =JSON.parse(response).length/ 50 %>
+                  <% let j =JSON.parse(response).length/ range %>
                 </p>
 
                 <% for(let i = 1; i <= j; i++){ %>
@@ -94,7 +94,7 @@
                 <% }%>
                 <a class="icon item">
                   <i class="right chevron icon"></i>
-                </a>
+                </a> -->
               </div>
             </th>
           </tr>
@@ -104,23 +104,52 @@
     <script>
       let search = document.getElementById("search");
       let data = document.getElementById("data");
-      search.addEventListener("click", function() {
-        getData(data.value);
+      let result;
+      search.addEventListener("click", async function() {
+        result = await getData(data.value);
+        console.log("result", result);
+        if (!result) {
+          console.log("undefined query");
+          let newEl = document.createElement("tr");
+          newEl.setAttribute("id", "tbody");
+          newEl.innerHTML = "<p>No result Found</p>";
+          let tbody = document.getElementById("tbody");
+          console.log("tbody", tbody);
+          tbody.parentNode.replaceChild(newEl, tbody);
+          return;
+        }
+        let newEl = document.createElement("tr");
+        newEl.setAttribute("id", "tbody");
+        newEl.innerHTML = `<td>${result.name}</td>
+        <td>${result.id}</td>
+        <td>${result.nametype}</td>
+        <td>${result.recclass}</td>
+        <td>${result.mass}</td>
+        <td>${result.fall}</td>
+        <td>${result.year.slice(0, 4)} </td>
+        <td>${result.geolocation.latitude}</td>
+        <td>${result.geolocation.longitude}</td>
+        `;
+        let tbody = document.getElementById("tbody");
+        console.log("tbody", tbody);
+        tbody.parentNode.replaceChild(newEl, tbody);
       });
 
-      var newEl = document.createElement("p");
-      newEl.innerHTML = "<b>Hello World!</b>";
-      let tbody = document.getElementById("tbody");
-      console.log(tbody);
-      tbody.parentNode.replaceChild(newEl, tbody);
-
-      function getData(query) {
+      async function getData(query) {
+        let queryResult;
         if (isQueryValidated(query)) {
-          fetch(`https://data.nasa.gov/resource/gh4g-9sfh.json?$q=${query}`)
+          queryResult = fetch(
+            `https://data.nasa.gov/resource/gh4g-9sfh.json?$q=${query}`
+          )
             .then(res => res.json())
-            .then(data => console.log(data));
+            .then(data => data[0])
+            .catch(e => {
+              console.log("malfomed data", e);
+            });
+          console.log("queryResult", queryResult);
+          return await queryResult;
         } else {
-          alert("Please Enter Valid Seach: ");
+          location.reload(true);
         }
       }
       function isQueryValidated(query) {
