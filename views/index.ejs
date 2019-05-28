@@ -44,12 +44,12 @@
           </tr>
         </thead>
         <tbody id="tbody">
-          <% let range = 50 %> <% let i; %> <% let responseJSON =
-          JSON.parse(response) %> <% for(i = 0 ;i < responseJSON.length;i++) {
-          %> <% let val = responseJSON[i] %>
+          <% let responseJSON = JSON.parse(response) %> <% let renderTableData =
+          function(min,max,response) { %> <% for(i = min ;i < max-1;i++) { %> <%
+          let val = response[i] %>
           <tr>
             <td>
-              <%= val.name %>
+              <% if(val.name) %> <%= val.name %>
             </td>
             <td>
               <%= val.id %>
@@ -76,25 +76,20 @@
               <% if(val.geolocation){ %> <%= val.geolocation.longitude %><% } %>
             </td>
           </tr>
-          <% } %>
+
+          <% } %> <% }%> <%= renderTableData(min,max,responseJSON) %>
         </tbody>
         <tfoot>
           <tr>
             <th colspan="9">
               <div class="ui right floated pagination menu">
-                <!-- <a class="icon item">
+                <a class="icon item">
                   <i class="left chevron icon"></i>
                 </a>
-                <p>
-                  <% let j =JSON.parse(response).length/ range %>
-                </p>
 
-                <% for(let i = 1; i <= j; i++){ %>
-                <a class="item"><%= i %></a>
-                <% }%>
                 <a class="icon item">
                   <i class="right chevron icon"></i>
-                </a> -->
+                </a>
               </div>
             </th>
           </tr>
@@ -105,35 +100,87 @@
       let search = document.getElementById("search");
       let data = document.getElementById("data");
       let result;
+
       search.addEventListener("click", async function() {
         result = await getData(data.value);
-        console.log("result", result);
+        console.log('res',result)
         if (!result) {
-          console.log("undefined query");
           let newEl = document.createElement("tr");
           newEl.setAttribute("id", "tbody");
           newEl.innerHTML = "<p>No result Found</p>";
           let tbody = document.getElementById("tbody");
-          console.log("tbody", tbody);
           tbody.parentNode.replaceChild(newEl, tbody);
           return;
         }
-        let newEl = document.createElement("tr");
-        newEl.setAttribute("id", "tbody");
-        newEl.innerHTML = `<td>${result.name}</td>
-        <td>${result.id}</td>
-        <td>${result.nametype}</td>
-        <td>${result.recclass}</td>
-        <td>${result.mass}</td>
-        <td>${result.fall}</td>
-        <td>${result.year.slice(0, 4)} </td>
-        <td>${result.geolocation.latitude}</td>
-        <td>${result.geolocation.longitude}</td>
-        `;
+        if(result.length > 2){
+
+
+        let newTbody = document.createElement('tbody')
+        result.forEach((result)=>{
+          let newEl = document.createElement("tr");
+        // newEl.setAttribute("id", "tbody");
+        // result.forEach(()=>{
+
+
+          newEl.innerHTML = `<td>${result.name}</td>
+           <td>${result.id}</td>
+           <td>${result.nametype}</td>
+           <td>${result.recclass}</td>
+           <td>${result.mass}</td>
+           <td>${result.fall}</td>
+           <td>${result.year.slice(0, 4)} </td>
+           <td>${result.geolocation.latitude}</td>
+           <td>${result.geolocation.longitude}</td>
+           `;
+
+           newTbody.appendChild(newEl)
+
+        })
         let tbody = document.getElementById("tbody");
-        console.log("tbody", tbody);
+        tbody.parentNode.replaceChild(newTbody, tbody);
+      }
+      else {
+         result = result[0]
+            let newEl = document.createElement("tr");
+        newEl.setAttribute("id", "tbody");
+
+
+          newEl.innerHTML = `<td>${result.name}</td>
+           <td>${result.id}</td>
+           <td>${result.nametype}</td>
+           <td>${result.recclass}</td>
+           <td>${result.mass}</td>
+           <td>${result.fall}</td>
+           <td>${result.year.slice(0, 4)} </td>
+           <td>${result.geolocation.latitude}</td>
+           <td>${result.geolocation.longitude}</td>
+           `;
+           let tbody = document.getElementById("tbody");
         tbody.parentNode.replaceChild(newEl, tbody);
+
+      }
+
+
+
+
       });
+
+      const aRef = document.querySelectorAll("a");
+      for (x of aRef) {
+        x.addEventListener("click", function() {
+          <% let lower = min + 50%>
+          <% min = lower%>
+          <% let upper = max + 50 %>
+          <% max = upper%>
+          <% console.log(min +" " +  max ) %>
+          let newEl = document.createElement("tbody");
+
+          newEl.innerHTML = `<%= renderTableData(lower,upper,responseJSON)%>`;
+          newEl.setAttribute("id", "tbody");
+          let tbody = document.getElementById("tbody");
+          tbody.parentNode.replaceChild(newEl, tbody);
+        });
+      }
 
       async function getData(query) {
         let queryResult;
@@ -142,11 +189,10 @@
             `https://data.nasa.gov/resource/gh4g-9sfh.json?$q=${query}`
           )
             .then(res => res.json())
-            .then(data => data[0])
+            .then(data => data)
             .catch(e => {
               console.log("malfomed data", e);
             });
-          console.log("queryResult", queryResult);
           return await queryResult;
         } else {
           location.reload(true);
